@@ -1,3 +1,12 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">SE2_UE0</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="textAction1">Gib deine Matrikelnummer ein</string>
+    <string name="tfHint1">Matrikelnummer</string>
+    <string name="buttonAction1">SERVER</string>
+    <string name="buttonAction2">GCD</string>
+
+    <string name="errorMessage1">Field cannot be empty</string>
+    <string name="errorMessage2">NO PAIR WITH GCD > 1 has been found.</string>
 </resources>
