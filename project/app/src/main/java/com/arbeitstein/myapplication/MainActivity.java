@@ -1,7 +1,6 @@
 package com.arbeitstein.myapplication;
 
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -14,6 +13,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,8 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
-
         serverButton.setOnClickListener(view -> sendMatNrToServer(editTextNumber.getText().toString()));
+        gcdButton.setOnClickListener(view -> getGcdOfPairs(editTextNumber.getText().toString()));
+
     }
 
     private void sendMatNrToServer(String matNr) {
@@ -48,10 +50,7 @@ public class MainActivity extends AppCompatActivity {
                 out.println(matNr);
                 String response = in.readLine();
 
-                runOnUiThread(() -> {
-                    tvResponse.setText(response);
-                    tvResponse.setMovementMethod(new ScrollingMovementMethod());
-                });
+                runOnUiThread(() -> tvResponse.setText(response));
 
                 out.close();
                 in.close();
@@ -62,4 +61,40 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void getGcdOfPairs(String matNr) {
+        if (matNr.length() != 8){
+            tvResponse.setText(R.string.errorMessage1);
+        } else {
+            List<String> pairs = new ArrayList<>();
+            for (int i = 0; i < matNr.length(); i++) {
+                for (int j = i + 1; j < matNr.length(); j++) {
+                    int gcd = findGcdOfPair(Character.getNumericValue(matNr.charAt(i)), Character.getNumericValue(matNr.charAt(j)));
+                    if (gcd > 1) {
+                        pairs.add("(I1: " + i + ", I2: " + j + ") - GCD: " + gcd);
+                    }
+                }
+            }
+            if (!pairs.isEmpty()){
+                StringBuilder result = new StringBuilder();
+                for (String pair : pairs) {
+                    result.append(pair).append("\n");
+                }
+                tvResponse.setText(result.toString());
+            } else {
+                tvResponse.setText(R.string.errorMessage2);
+            }
+
+        }
+
+    }
+
+    private int findGcdOfPair(int num1, int num2) {
+        int min = Math.min(num1, num2);
+        for (int i = min; i >= 2; i--) {
+            if (num1 % i == 0 && num2 % i == 0) {
+                return i;
+            }
+        }
+        return 1;
+    }
 }
