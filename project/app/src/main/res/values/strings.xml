@@ -7,7 +7,7 @@
     <string name="buttonAction1">SERVER</string>
     <string name="buttonAction2">GCD</string>
 
-    <string name="errorMessage1">Please enter valid Number</string>
-    <string name="errorMessage2">NO PAIR WITH GCD > 1 has been found.</string>
+    <string name="errorMessage1">NO PAIR WITH GCD > 1 has been found.</string>
+    <string name="serverError1">Dies ist keine gueltige Matrikelnummer</string>
 
 </resources>

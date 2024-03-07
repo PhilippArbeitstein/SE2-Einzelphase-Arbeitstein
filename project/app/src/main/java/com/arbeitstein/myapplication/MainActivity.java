@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,57 +36,73 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
-        serverButton.setOnClickListener(view -> sendMatNrToServer(editTextNumber.getText().toString()));
+        serverButton.setOnClickListener(view -> getAnswerFromServer(editTextNumber.getText().toString()));
         gcdButton.setOnClickListener(view -> getGcdOfPairs(editTextNumber.getText().toString()));
 
     }
 
-    private void sendMatNrToServer(String matNr) {
+    private void getAnswerFromServer(String matNr) {
         new Thread(() ->  {
-            try {
-                Socket socket = new Socket("se2-submission.aau.at", 20080);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String response = createSocketConnection(matNr);
+            runOnUiThread(() -> tvResponse.setText(response));
+        }).start();
+    }
 
-                out.println(matNr);
-                String response = in.readLine();
+    private String createSocketConnection(String matNr){
+        String response;
+        try {
+            Socket socket = new Socket("se2-submission.aau.at", 20080);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                runOnUiThread(() -> tvResponse.setText(response));
+            out.println(matNr);
+            response = in.readLine();
 
-                out.close();
-                in.close();
-                socket.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            out.close();
+            in.close();
+            socket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return response;
+    }
+
+    private void getGcdOfPairs(String matNr) {
+        new Thread(() ->  {
+            String response = createSocketConnection(matNr);
+            System.out.println(response);
+            if (Objects.equals(response, "Dies ist keine gueltige Matrikelnummer")){
+                runOnUiThread(() -> tvResponse.setText(R.string.serverError1));
+            } else {
+                List<String> resultPairs = getGcdList(matNr);
+                printGcdPairs(resultPairs);
             }
         }).start();
     }
 
-    private void getGcdOfPairs(String matNr) {
-        if (matNr.length() != 8){
-            tvResponse.setText(R.string.errorMessage1);
-        } else {
-            List<String> pairs = new ArrayList<>();
-            for (int i = 0; i < matNr.length(); i++) {
-                for (int j = i + 1; j < matNr.length(); j++) {
-                    int gcd = findGcdOfPair(Character.getNumericValue(matNr.charAt(i)), Character.getNumericValue(matNr.charAt(j)));
-                    if (gcd > 1) {
-                        pairs.add("(I1: " + i + ", I2: " + j + ") - GCD: " + gcd);
-                    }
+    private List<String> getGcdList(String matNr) {
+        List<String> pairs = new ArrayList<>();
+        for (int i = 0; i < matNr.length(); i++) {
+            for (int j = i + 1; j < matNr.length(); j++) {
+                int gcd = findGcdOfPair(Character.getNumericValue(matNr.charAt(i)), Character.getNumericValue(matNr.charAt(j)));
+                if (gcd > 1) {
+                    pairs.add("(I1: " + i + ", I2: " + j + ") - GCD: " + gcd);
                 }
             }
-            if (!pairs.isEmpty()){
-                StringBuilder result = new StringBuilder();
-                for (String pair : pairs) {
-                    result.append(pair).append("\n");
-                }
-                tvResponse.setText(result.toString());
-            } else {
-                tvResponse.setText(R.string.errorMessage2);
-            }
-
         }
+        return pairs;
+    }
 
+    private void printGcdPairs(List<String> pairs) {
+        if (!pairs.isEmpty()){
+            StringBuilder result = new StringBuilder();
+            for (String pair : pairs) {
+                result.append(pair).append("\n");
+            }
+            runOnUiThread(() -> tvResponse.setText(result.toString()));
+        } else {
+            runOnUiThread(() -> tvResponse.setText(R.string.errorMessage1));
+        }
     }
 
     private int findGcdOfPair(int num1, int num2) {
